@@ -105,19 +105,18 @@ function Library:Create(table)
     uIPadding.PaddingTop = UDim.new(0, 4)
     uIPadding.Parent = tabContainer
 
-    local shadow = Instance.new("Frame")
+    local shadow = Instance.new("ImageLabel")
     shadow.Name = "shadow"
-    shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    shadow.BackgroundTransparency = 0.7
-    shadow.Position = UDim2.new(0.5, -10, 0.5, 10)
-    shadow.Size = UDim2.fromOffset(488 + 20, 299 + 20)
+    shadow.Image = "rbxassetid://297774371"
+    shadow.ImageColor3 = Color3.fromRGB(15, 15, 15)
+    shadow.ImageTransparency = 0.3
+    shadow.SliceCenter = Rect.new(20, 20, 280, 280)
+    shadow.BackgroundTransparency = 1
+    shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+    shadow.Size = UDim2.fromOffset(529, 331)
     shadow.ZIndex = -1
     shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-    shadow.Parent = main
-
-    local shadowCorner = Instance.new("UICorner")
-    shadowCorner.CornerRadius = UDim.new(0, 10)
-    shadowCorner.Parent = shadow
+    shadow.Parent = dark_UI
 
     local reopenBtn = Instance.new("ImageButton")
     reopenBtn.Name = "ReopenBtn"
@@ -494,7 +493,7 @@ function Library:Create(table)
         return ElementHandler
     end
 
-    local function makeDraggable(frame)
+    local function makeDraggable(frame, targetFrame, targetShadow)
         local dragging = false
         local dragInput
         local dragStart
@@ -503,15 +502,17 @@ function Library:Create(table)
         local function update(input)
             local delta = input.Position - dragStart
             local newPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-            TweenService:Create(main, TweenInfo.new(0.1), {Position = newPos}):Play()
-            TweenService:Create(shadow, TweenInfo.new(0.1), {Position = newPos}):Play()
+            TweenService:Create(targetFrame or frame, TweenInfo.new(0.1), {Position = newPos}):Play()
+            if targetShadow then
+                TweenService:Create(targetShadow, TweenInfo.new(0.1), {Position = newPos}):Play()
+            end
         end
 
         frame.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = true
                 dragStart = input.Position
-                startPos = main.Position
+                startPos = (targetFrame or frame).Position
                 local conn
                 conn = input.Changed:Connect(function()
                     if input.UserInputState == Enum.UserInputState.End then
@@ -535,7 +536,7 @@ function Library:Create(table)
         end)
     end
 
-    makeDraggable(contentFrame)
+    makeDraggable(contentFrame, main, shadow)
     makeDraggable(reopenBtn)
 
     tabContainer.ChildAdded:Connect(function()
@@ -562,7 +563,7 @@ function Library:Create(table)
     end)
 
     local minimizedSize = UDim2.fromOffset(488, 60)
-    local minimizedShadowSize = UDim2.fromOffset(488 + 12, 60 + 12)
+    local minimizedShadowSize = UDim2.fromOffset(529, 100)
 
     minimizeBtn.MouseButton1Click:Connect(function()
         if closed then return end
@@ -571,7 +572,6 @@ function Library:Create(table)
         if minimized then
             TweenService:Create(main, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = minimizedSize}):Play()
             TweenService:Create(shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = minimizedShadowSize}):Play()
-            shadow.Position = UDim2.new(0.5, -6, 0.5, 6)
             tabContainer.Visible = false
             for _, v in pairs(contentFrame:GetChildren()) do
                 if v.Name == "container" then
@@ -580,8 +580,7 @@ function Library:Create(table)
             end
         else
             TweenService:Create(main, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = originalSize}):Play()
-            TweenService:Create(shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = UDim2.fromOffset(488 + 20, 299 + 20)}):Play()
-            shadow.Position = UDim2.new(0.5, -10, 0.5, 10)
+            TweenService:Create(shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = UDim2.fromOffset(529, 331)}):Play()
             tabContainer.Visible = true
             for _, tabBtn in pairs(tabContainer:GetChildren()) do
                 if tabBtn:IsA("TextButton") and tabBtn.TextTransparency == 0 then
@@ -600,7 +599,7 @@ function Library:Create(table)
         closed = true
         
         TweenService:Create(main, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = UDim2.fromOffset(488, 0)}):Play()
-        TweenService:Create(shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = UDim2.fromOffset(488 + 12, 0 + 12)}):Play()
+        TweenService:Create(shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = UDim2.fromOffset(529, 0)}):Play()
         
         task.wait(0.4)
         main.Visible = false
@@ -615,7 +614,7 @@ function Library:Create(table)
         reopenBtn.Visible = false
         
         TweenService:Create(main, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = originalSize, Position = originalPos}):Play()
-        TweenService:Create(shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = UDim2.fromOffset(488 + 20, 299 + 20), Position = UDim2.new(0.5, -10, 0.5, 10)}):Play()
+        TweenService:Create(shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = UDim2.fromOffset(529, 331), Position = originalPos}):Play()
         
         if minimized then
             task.delay(0.1, function()
