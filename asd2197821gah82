@@ -18,6 +18,10 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 local HTTPService = game:GetService("HttpService")
+local minimized = false
+local closed = false
+local originalSize
+local originalPos
 
 function Library:Create(table)
     local windowName = table.Name
@@ -39,6 +43,35 @@ function Library:Create(table)
     title.Position = UDim2.fromScale(0.41, 0.0543)
     title.Size = UDim2.fromOffset(83, 28)
     title.Parent = main
+
+        local minimizeBtn = Instance.new("ImageButton")
+    minimizeBtn.Name = "Minimize"
+    minimizeBtn.BackgroundTransparency = 1
+    minimizeBtn.Size = UDim2.fromOffset(24, 24)
+    minimizeBtn.Position = UDim2.new(1, -60, 0.5, 0)
+    minimizeBtn.AnchorPoint = Vector2.new(0, 0.5)
+    minimizeBtn.Image = "rbxassetid://7733964716"
+    minimizeBtn.ImageColor3 = Color3.fromRGB(168, 168, 168)
+    minimizeBtn.Parent = main
+
+    local closeBtn = Instance.new("ImageButton")
+    closeBtn.Name = "Close"
+    closeBtn.BackgroundTransparency = 1
+    closeBtn.Size = UDim2.fromOffset(24, 24)
+    closeBtn.Position = UDim2.new(1, -30, 0.5, 0)
+    closeBtn.AnchorPoint = Vector2.new(0, 0.5)
+    closeBtn.Image = "rbxassetid://6031094678"
+    closeBtn.ImageColor3 = Color3.fromRGB(168, 168, 168)
+    closeBtn.Parent = main
+
+    for _, btn in pairs({minimizeBtn, closeBtn}) do
+        btn.MouseEnter:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+        end)
+        btn.MouseLeave:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.2), {ImageColor3 = Color3.fromRGB(168, 168, 168)}):Play()
+        end)
+    end
 
     local uICorner = Instance.new("UICorner")
     uICorner.Name = "uICorner"
@@ -89,6 +122,26 @@ function Library:Create(table)
 
     main.Position = UDim2.new(0.5,0,0.5,0)
     shadow.Position = UDim2.new(0.5,0,0.5,0)
+local reopenBtn = Instance.new("ImageButton")
+    reopenBtn.Name = "ReopenBtn"
+    reopenBtn.Visible = false
+    reopenBtn.Size = UDim2.fromOffset(50, 50)
+    reopenBtn.Position = UDim2.new(0.02, 0, 0.5, 0)
+    reopenBtn.BackgroundTransparency = 1
+    reopenBtn.Image = "https://cdn.discordapp.com/avatars/1057165794133430363/2961e02f87a36725b8bc662808ba17a3.webp?size=128"
+    reopenBtn.Parent = dark_UI
+
+    local reopenCorner = Instance.new("UICorner")
+    reopenCorner.CornerRadius = UDim.new(0, 12)
+    reopenCorner.Parent = reopenBtn
+
+    local reopenStroke = Instance.new("UIStroke")
+    reopenStroke.Thickness = 2
+    reopenStroke.Color = Color3.fromRGB(60, 60, 60)
+    reopenStroke.Parent = reopenBtn
+
+    originalSize = main.Size
+    originalPos = main.Position
 
     local tabHandler = {}
 
@@ -531,6 +584,74 @@ function Library:Create(table)
             sound:Play()
             sound.Stopped:Wait()
             sound:Destroy()
+        end
+    end)
+
+        local minimizedSize = UDim2.fromOffset(488, 60)
+
+    minimizeBtn.MouseButton1Click:Connect(function()
+        if closed then return end
+        
+        minimized = not minimized
+        
+        if minimized then
+            TweenService:Create(main, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = minimizedSize}):Play()
+            TweenService:Create(shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = UDim2.fromOffset(529, 90)}):Play()
+            
+            tabContainer.Visible = false
+            for _, v in pairs(main:GetChildren()) do
+                if v.Name == "container" then
+                    v.Visible = false
+                end
+            end
+        else
+            TweenService:Create(main, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = originalSize}):Play()
+            TweenService:Create(shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = UDim2.fromOffset(529, 331)}):Play()
+            
+            tabContainer.Visible = true
+            
+            for _, tabBtn in pairs(tabContainer:GetChildren()) do
+                if tabBtn:IsA("TextButton") and tabBtn.TextTransparency == 0 then
+                    local container = main:FindFirstChild("container")
+                    if container then
+                        container.Visible = true
+                    end
+                    break
+                end
+            end
+        end
+    end)
+
+    closeBtn.MouseButton1Click:Connect(function()
+        if minimized then
+            minimized = false
+        end
+        
+        closed = true
+        
+        TweenService:Create(main, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, -1, 0)}):Play()
+        TweenService:Create(shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Position = UDim2.new(0.5, 0, -1, 0)}):Play()
+        
+        task.wait(0.4)
+        main.Visible = false
+        shadow.Visible = false
+        reopenBtn.Visible = true
+    end)
+
+    reopenBtn.MouseButton1Click:Connect(function()
+        closed = false
+        main.Visible = true
+        shadow.Visible = true
+        reopenBtn.Visible = false
+        
+        TweenService:Create(main, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = originalPos}):Play()
+        TweenService:Create(shadow, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Position = originalPos}):Play()
+        
+        if minimized then
+            task.spawn(function()
+                task.wait(0.1)
+                minimizeBtn.MouseButton1Click:Fire()
+            end)
         end
     end)
 
