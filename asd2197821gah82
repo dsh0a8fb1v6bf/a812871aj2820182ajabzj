@@ -26,19 +26,17 @@ function Library:Create(table)
 
     local main = Instance.new("Frame")
     main.Name = "main"
-    main.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    main.BackgroundTransparency = 1
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.Size = UDim2.fromOffset(488, 299)
     main.AnchorPoint = Vector2.new(0.5, 0.5)
-    main.BackgroundTransparency = 1
     main.Parent = dark_UI
 
     local contentFrame = Instance.new("Frame")
     contentFrame.Name = "contentFrame"
     contentFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
     contentFrame.Size = UDim2.new(1, 0, 1, 0)
-    contentFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    contentFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    contentFrame.Position = UDim2.new(0, 0, 0, 0)
     contentFrame.ClipsDescendants = true
     contentFrame.Parent = main
 
@@ -596,7 +594,7 @@ function Library:Create(table)
         if minimized then minimized = false end
         closed = true
         
-        TweenService:Create(main, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Size = UDim2.fromScale(0, 0)}):Play()
+        TweenService:Create(contentFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Size = UDim2.fromScale(0, 0)}):Play()
         TweenService:Create(shadow, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Size = UDim2.fromScale(0, 0)}):Play()
         
         task.wait(0.5)
@@ -611,6 +609,7 @@ function Library:Create(table)
         shadow.Visible = true
         reopenBtn.Visible = false
         
+        TweenService:Create(contentFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Size = UDim2.new(1, 0, 1, 0)}):Play()
         TweenService:Create(main, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Size = originalSize, Position = originalPos}):Play()
         TweenService:Create(shadow, TweenInfo.new(0.5, Enum.EasingStyle.Quint), {Size = UDim2.fromOffset(529, 331), Position = originalPos}):Play()
         
