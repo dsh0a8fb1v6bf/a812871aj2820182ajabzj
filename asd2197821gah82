@@ -30,6 +30,20 @@ function Library:Create(table)
     main.Position = UDim2.new(0.5, 0, 0.5, 0)
     main.Size = UDim2.fromOffset(488, 299)
     main.AnchorPoint = Vector2.new(0.5, 0.5)
+    main.BackgroundTransparency = 1
+    main.Parent = dark_UI
+
+    local contentFrame = Instance.new("Frame")
+    contentFrame.Name = "contentFrame"
+    contentFrame.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    contentFrame.Size = UDim2.new(1, 0, 1, 0)
+    contentFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    contentFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    contentFrame.ClipsDescendants = true
+    contentFrame.Parent = main
+
+    local uICorner = Instance.new("UICorner")
+    uICorner.Parent = contentFrame
 
     local title = Instance.new("TextLabel")
     title.Name = "title"
@@ -41,7 +55,7 @@ function Library:Create(table)
     title.Position = UDim2.new(0, 15, 0, 0)
     title.Size = UDim2.new(1, -100, 0, 50)
     title.TextXAlignment = Enum.TextXAlignment.Left
-    title.Parent = main
+    title.Parent = contentFrame
 
     local minimizeBtn = Instance.new("ImageButton")
     minimizeBtn.Name = "Minimize"
@@ -50,7 +64,7 @@ function Library:Create(table)
     minimizeBtn.Position = UDim2.new(1, -75, 0, 8)
     minimizeBtn.Image = "rbxassetid://7733964716"
     minimizeBtn.ImageColor3 = Color3.fromRGB(168, 168, 168)
-    minimizeBtn.Parent = main
+    minimizeBtn.Parent = contentFrame
 
     local closeBtn = Instance.new("ImageButton")
     closeBtn.Name = "Close"
@@ -59,7 +73,7 @@ function Library:Create(table)
     closeBtn.Position = UDim2.new(1, -35, 0, 8)
     closeBtn.Image = "rbxassetid://6031094678"
     closeBtn.ImageColor3 = Color3.fromRGB(168, 168, 168)
-    closeBtn.Parent = main
+    closeBtn.Parent = contentFrame
 
     for _, btn in pairs({minimizeBtn, closeBtn}) do
         btn.MouseEnter:Connect(function()
@@ -70,15 +84,12 @@ function Library:Create(table)
         end)
     end
 
-    local uICorner = Instance.new("UICorner")
-    uICorner.Parent = main
-
     local tabContainer = Instance.new("Frame")
     tabContainer.Name = "tabContainer"
     tabContainer.BackgroundColor3 = Color3.fromRGB(33, 33, 33)
     tabContainer.Position = UDim2.fromScale(0.0342, 0.188)
     tabContainer.Size = UDim2.fromOffset(454, 30)
-    tabContainer.Parent = main
+    tabContainer.Parent = contentFrame
 
     local uICorner1 = Instance.new("UICorner")
     uICorner1.CornerRadius = UDim.new(0, 6)
@@ -107,8 +118,6 @@ function Library:Create(table)
     shadow.ZIndex = -1
     shadow.AnchorPoint = Vector2.new(0.5, 0.5)
     shadow.Parent = dark_UI
-
-    main.Parent = dark_UI
 
     local reopenBtn = Instance.new("ImageButton")
     reopenBtn.Name = "ReopenBtn"
@@ -155,7 +164,7 @@ function Library:Create(table)
         container.BackgroundColor3 = Color3.fromRGB(33, 33, 33)
         container.Position = UDim2.fromScale(0.0342, 0.31)
         container.Size = UDim2.fromOffset(454, 183)
-        container.Parent = main
+        container.Parent = contentFrame
         container.Visible = false
         
         local uICorner2 = Instance.new("UICorner")
@@ -188,7 +197,7 @@ function Library:Create(table)
         uICorner11.Parent = holder
 
         main1.MouseButton1Click:Connect(function()
-            for _,v in pairs(main:GetChildren()) do
+            for _,v in pairs(contentFrame:GetChildren()) do
                 if v.Name == "container" then
                     v.Visible = false
                 end
@@ -487,23 +496,22 @@ function Library:Create(table)
 
     local function makeDraggable(frame)
         local dragging = false
-        local dragInput, dragStart, startPos
+        local dragInput
+        local dragStart
+        local startPos
 
         local function update(input)
             local delta = input.Position - dragStart
             local newPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-            TweenService:Create(frame, TweenInfo.new(0.1), {Position = newPos}):Play()
-            if frame == main then
-                TweenService:Create(shadow, TweenInfo.new(0.1), {Position = newPos}):Play()
-            end
+            TweenService:Create(main, TweenInfo.new(0.1), {Position = newPos}):Play()
+            TweenService:Create(shadow, TweenInfo.new(0.1), {Position = newPos}):Play()
         end
 
         frame.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 dragging = true
                 dragStart = input.Position
-                startPos = frame.Position
-
+                startPos = main.Position
                 local conn
                 conn = input.Changed:Connect(function()
                     if input.UserInputState == Enum.UserInputState.End then
@@ -527,7 +535,7 @@ function Library:Create(table)
         end)
     end
 
-    makeDraggable(main)
+    makeDraggable(contentFrame)
     makeDraggable(reopenBtn)
 
     tabContainer.ChildAdded:Connect(function()
@@ -563,7 +571,7 @@ function Library:Create(table)
             TweenService:Create(main, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = minimizedSize}):Play()
             TweenService:Create(shadow, TweenInfo.new(0.4, Enum.EasingStyle.Quint), {Size = UDim2.fromOffset(529, 90)}):Play()
             tabContainer.Visible = false
-            for _, v in pairs(main:GetChildren()) do
+            for _, v in pairs(contentFrame:GetChildren()) do
                 if v.Name == "container" then
                     v.Visible = false
                 end
@@ -574,8 +582,10 @@ function Library:Create(table)
             tabContainer.Visible = true
             for _, tabBtn in pairs(tabContainer:GetChildren()) do
                 if tabBtn:IsA("TextButton") and tabBtn.TextTransparency == 0 then
-                    local container = main:FindFirstChild("container")
-                    if container then container.Visible = true end
+                    local container = contentFrame:FindFirstChild("container")
+                    if container then
+                        container.Visible = true
+                    end
                     break
                 end
             end
